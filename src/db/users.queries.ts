@@ -1,7 +1,7 @@
 import type {
   CreateUserInputType,
   UpdateUserInputType,
-} from "validations/users.validations.ts";
+} from "validations/user.validations.ts";
 import sql from "./client.ts";
 
 export function createUserQuery(input: CreateUserInputType) {
@@ -18,11 +18,15 @@ export function updateUserQuery(
   userId: string,
   input: UpdateUserInputType,
 ) {
-  return sql`
+  const query = `
 	UPDATE users
 	SET ${sql(input)}
 	WHERE id = ${userId}
 	RETURNING *;
+	`;
+  console.log(input, "fucc", query);
+  return sql`
+	${query}
 	`;
 }
 
@@ -42,7 +46,7 @@ export function getAllUsersQuery() {
 export function deleteUserQuery(userId: string) {
   return sql`
 		DELETE FROM users
-		where id = ${userId}
+		WHERE id = ${userId}
 		RETURNING *;
 	`;
 }

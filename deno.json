@@ -1,6 +1,7 @@
 {
   "imports": {
     "hono": "jsr:@hono/hono@^4.6.20",
+    "db/": "./src/db/",
     "models/": "./src/models/",
     "constants/": "./src/constants/",
     "controllers/": "./src/controllers/",

@@ -4,16 +4,16 @@ import {
   deleteUserQuery,
   getUserByIdQuery,
   updateUserQuery,
-} from "../db/users.ts";
+} from "../db/users.queries.ts";
 import {
   type CreateUserInputType,
   type UpdateUserInputType,
   validateCreateUserInput,
   validateUpdateUserInput,
   validateUserIdInput,
-} from "validations/users.validations.ts";
+} from "validations/user.validations.ts";
 import HTTP_STATUS, { getErrorStatus } from "constants/httpStatus.ts";
-import { apiResponse } from "../utils/apiResponseHelper.ts";
+import { apiResponse } from "utils/apiResponseHelper.ts";
 import { USERS } from "constants/api-messages.ts";
 
 export async function createUserController(c: Context) {
@@ -74,7 +74,7 @@ export async function deleteUserController(c: Context) {
   } catch (e) {
     const status = getErrorStatus(e);
 
-    return apiResponse(c, null, USERS.DELETED_ERROR, status);
+    return apiResponse(c, null, USERS.DELETED_ERROR, status, e);
   }
 }
 
@@ -92,12 +92,6 @@ export async function getUserByIdController(c: Context) {
   } catch (e) {
     const status = getErrorStatus(e);
 
-    return apiResponse(
-      c,
-      null,
-      USERS.GET_ERROR,
-      status,
-      e,
-    );
+    return apiResponse(c, null, USERS.GET_ERROR, status, e);
   }
 }

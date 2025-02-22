@@ -86,7 +86,7 @@ async function setUpTasksTable() {
         board_id UUID NOT NULL REFERENCES boards (id),
         title TEXT NOT NULL,
         description TEXT,
-        status TEXT NOT NULL CHECK (status IN ('todo', 'paused', 'in-progress', 'done')),
+        status TEXT NOT NULL DEFAULT 'todo' CHECK (status IN ('todo', 'paused', 'in-progress', 'done')),
         created_by UUID NOT NULL REFERENCES users (id),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

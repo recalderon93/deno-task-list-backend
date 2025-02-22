@@ -1,25 +1,41 @@
 import { Context } from "hono";
+import type { Task } from "models/task.model.ts";
 import type {
-  changeTaskStatusInputType,
+  ChangeTaskStatusInputType,
   CreateTaskInputType,
-  Task,
   UpdateTaskInputType,
-} from "models/task.model.ts";
+} from "validations/task.validations.ts";
+import {
+  changeTaskStatusQuery,
+  createTaskQuery,
+  deleteTaskQuery,
+  getTasksByBoardIdQuery,
+  updateTaskQuery,
+} from "db/tasks.queries.ts";
+import {
+  validateChangeTaskStatusInput,
+  validateCreateTaskInput,
+  validateTaskBoardIdInput,
+  validateTaskIdInput,
+  validateUpdateTaskInput,
+} from "validations/task.validations.ts";
+import { TASKS } from "constants/api-messages.ts";
+import HTTP_STATUS, { getErrorStatus } from "constants/httpStatus.ts";
+import { apiResponse } from "utils/apiResponseHelper.ts";
 
-export function getTasksByBoardIdController(c: Context) {
-  const boardId = c.req.param("boardId");
+export async function getTasksByBoardIdController(c: Context) {
+  const boardId = c.req.param("id");
 
   try {
-    // #TODO Validate Input
-    return c.json({
-      message: `Getting Tasks of BoardId=${boardId}`,
-      data: [] as Task[],
-    }, 200);
+    await validateTaskBoardIdInput(boardId);
+    const response = await getTasksByBoardIdQuery(boardId);
+    const status = HTTP_STATUS.OK;
+
+    return apiResponse(c, response, TASKS.GET_BY_BOARD, status);
   } catch (e) {
-    console.error(e);
-    return c.json({
-      message: `Error getting tasks of boardId=${boardId}`,
-    }, 400);
+    const status = getErrorStatus(e);
+
+    return apiResponse(c, null, TASKS.GET_BY_BOARD_ERROR, status, e);
   }
 }
 
@@ -27,37 +43,33 @@ export async function createTaskController(c: Context) {
   const input = await c.req.json<CreateTaskInputType>();
 
   try {
-    // #TODO validate Task's Input
-    c.json({
-      message: "Task Created.",
-      data: { ...input } as Task,
-    });
+    await validateCreateTaskInput(input);
+    const response = await createTaskQuery(input);
+    const status = HTTP_STATUS.CREATED;
+
+    return apiResponse(c, response, TASKS.CREATED, status);
   } catch (e) {
-    console.error(e);
-    return c.json({
-      message: `Error creating new Task`,
-    }, 401);
+    const status = getErrorStatus(e);
+
+    return apiResponse(c, null, TASKS.CREATED_ERROR, status, e);
   }
 }
 
 export async function changeTaskStatusController(c: Context) {
   const taskId = c.req.param("id");
-  const input = await c.req.json<changeTaskStatusInputType>();
+  const input = await c.req.json<ChangeTaskStatusInputType>();
 
   try {
-    // #TODO validate input
-    c.json({
-      message: `Change status input to ${input.status}`,
-      data: {
-        status: input.status,
-      } as Task,
-    });
-  } catch (e) {
-    console.error(e);
+    await validateTaskIdInput(taskId);
+    await validateChangeTaskStatusInput(input);
+    const response = await changeTaskStatusQuery(taskId, input);
+    const status = HTTP_STATUS.OK;
 
-    return c.json({
-      message: `Error changing status of task = ${taskId}`,
-    }, 401);
+    return apiResponse(c, response, TASKS.UPDATED, status);
+  } catch (e) {
+    const status = getErrorStatus(e);
+
+    return apiResponse(c, null, TASKS.UPDATED_ERROR, status, e);
   }
 }
 
@@ -66,36 +78,31 @@ export async function updateTaskController(c: Context) {
   const input = await c.req.json<UpdateTaskInputType>();
 
   try {
-    // #TODO Validate Input
-    return c.json({
-      message: `Error updating task= ${taskId}`,
-      data: {
-        ...input,
-      } as Task,
-    });
-  } catch (e) {
-    console.error(e);
+    await validateTaskIdInput(taskId);
+    await validateUpdateTaskInput(input);
+    const response = await updateTaskQuery(taskId, input);
+    const status = HTTP_STATUS.OK;
 
-    return c.json({
-      message: `Error updating task = ${taskId}`,
-    }, 401);
+    return apiResponse(c, response, TASKS.UPDATED, status);
+  } catch (e) {
+    const status = getErrorStatus(e);
+
+    return apiResponse(c, null, TASKS.UPDATED_ERROR, status, e);
   }
 }
 
-export function deleteTaskController(c: Context) {
+export async function deleteTaskController(c: Context) {
   const taskId = c.req.param("id");
 
   try {
-    // Validate Input
-    return c.json({
-      message: `Task deleted.`,
-      data: {} as Task,
-    }, 200);
-  } catch (e) {
-    console.error(e);
+    await validateTaskIdInput(taskId);
+    const response = await deleteTaskQuery(taskId);
+    const status = HTTP_STATUS.OK;
 
-    return c.json({
-      message: `Error updating task= ${taskId}`,
-    }, 401);
+    return apiResponse(c, response, TASKS.DELETED, status);
+  } catch (e) {
+    const status = getErrorStatus(e);
+
+    return apiResponse(c, null, TASKS.DELETED_ERROR, status);
   }
 }
