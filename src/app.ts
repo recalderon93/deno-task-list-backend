@@ -1,4 +1,5 @@
-import { Context, Hono } from "hono";
+import "jsr:@std/dotenv/load";
+import { Hono } from "hono";
 import userRoutes from "./routes/users.routes.ts";
 import taskRoutes from "./routes/tasks.routes.ts";
 import boardRoutes from "./routes/boards.routes.ts";

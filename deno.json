@@ -1,12 +1,18 @@
 {
   "imports": {
     "hono": "jsr:@hono/hono@^4.6.20",
+    "db/": "./src/db/",
     "models/": "./src/models/",
-    "controllers/": "./src/controllers/"
+    "constants/": "./src/constants/",
+    "controllers/": "./src/controllers/",
+    "validations/": "./src/validations/",
+    "utils/": "./src/utils/",
+    "zod": "npm:zod"
   },
   "tasks": {
-    "start": "deno run --allow-net main.ts",
-    "dev": "deno run --allow-net --watch main.ts"
+    "start": "deno run --allow-net --allow-env --env-file=.env.prod --allow-read main.ts",
+    "dev": "deno run --allow-net --allow-env --env-file=.env.dev --allow-read --watch main.ts",
+    "db:setup": "deno run --allow-env --allow-net ./src/db/setup.ts"
   },
   "compilerOptions": {
     "jsx": "precompile",

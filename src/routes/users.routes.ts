@@ -1,18 +1,18 @@
-import { Context, Hono } from "hono";
+import { Hono } from "hono";
 import {
   createUserController,
   deleteUserController,
   getUserByIdController,
   updateUserController,
 } from "controllers/users.controllers.ts";
+import { getBoardsByUserController } from "controllers/boards.controllers.ts";
 
 const userRoutes = new Hono()
   .get("/:id", getUserByIdController)
   .post("/", createUserController)
   .patch("/:id", updateUserController)
   .delete("/:id", deleteUserController)
-  .get(
-    "/",
-    (c: Context) => c.json({ message: "Hello from usersssss" }, 200),
-  );
+  /** Get all Boards associated to an Users */
+  .get("/:id/boards", getBoardsByUserController);
+
 export default userRoutes;

@@ -1,90 +1,97 @@
 import { Context } from "hono";
-import type {
-  CreateUsersInput,
-  UpdateUserInput,
-  User,
-} from "models/user.model.ts";
-import * as uuid from "jsr:@std/uuid";
+import {
+  createUserQuery,
+  deleteUserQuery,
+  getUserByIdQuery,
+  updateUserQuery,
+} from "../db/users.queries.ts";
+import {
+  type CreateUserInputType,
+  type UpdateUserInputType,
+  validateCreateUserInput,
+  validateUpdateUserInput,
+  validateUserIdInput,
+} from "validations/user.validations.ts";
+import HTTP_STATUS, { getErrorStatus } from "constants/httpStatus.ts";
+import { apiResponse } from "utils/apiResponseHelper.ts";
+import { USERS } from "constants/api-messages.ts";
 
 export async function createUserController(c: Context) {
-  const input = await c.req.json<CreateUsersInput>();
+  const input = await c.req.json<CreateUserInputType>();
   try {
-    // #TODO Validate user Data
-    // #TODO: User Id Validation
-    const userId = (input.id && uuid.validate(input.id)) ?? crypto.randomUUID();
-    // #TODO Create user on DB.
+    await validateCreateUserInput(input);
+    const response = await createUserQuery(input);
+    const status = HTTP_STATUS.CREATED;
 
-    return c.json({
-      message: "User Created",
-      data: {
-        ...input,
-        id: userId,
-      },
-    }, 201);
+    return apiResponse(c, response, USERS.CREATED, status);
   } catch (e) {
-    // #TODO Error handling
-    console.error(e);
-    return c.json({
-      message: "Error creating User",
-    }, 401);
+    const status = getErrorStatus(e);
+
+    return apiResponse(c, null, USERS.CREATED_ERROR, status, e);
   }
 }
 
 export async function updateUserController(c: Context) {
   const userId = c.req.param("id");
 
-  const data = await c.req.json<UpdateUserInput>();
+  const data = await c.req.json<UpdateUserInputType>();
 
   try {
-    // # TODO Validate Input & userId param
-
-    return c.json({
-      message: "User Updated",
-      data: { ...data, id: userId } as User,
+    await validateUpdateUserInput({
+      ...data,
+      id: userId,
     });
+    const response = await updateUserQuery(
+      userId,
+      data,
+    );
+    const status = HTTP_STATUS.OK;
+    if (response[0]) {
+      return apiResponse(c, response[0], USERS.UPDATED, status);
+    }
+    return apiResponse(c, null, USERS.NO_USER, HTTP_STATUS.NOT_FOUND);
   } catch (e) {
-    // #TODO Error Handling
-    console.error(e);
-    return c.json({
-      message: "Error updating Users",
-    }, 401);
+    const status = getErrorStatus(e);
+
+    return apiResponse(c, null, USERS.UPDATED_ERROR, status, e);
   }
 }
 
-export function deleteUserController(c: Context) {
+export async function deleteUserController(c: Context) {
   const userId = c.req.param("id");
 
   try {
-    return c.json({
-      message: "Deleted User",
-      data: {
-        id: userId,
-      } as User,
-    });
+    await validateUserIdInput(userId);
+
+    const response = await deleteUserQuery(userId);
+    const status = HTTP_STATUS.OK;
+
+    if (response[0]) {
+      return apiResponse(c, response[0], USERS.DELETED, status);
+    }
+
+    return apiResponse(c, null, USERS.NO_USER, HTTP_STATUS.NOT_FOUND);
   } catch (e) {
-    // #TODO error handling for possible errors
-    console.error(e);
-    return c.json({
-      message: `Error deleting the User with Id=${userId}`,
-    });
+    const status = getErrorStatus(e);
+
+    return apiResponse(c, null, USERS.DELETED_ERROR, status, e);
   }
 }
 
-export function getUserByIdController(c: Context) {
+export async function getUserByIdController(c: Context) {
   const userId = c.req.param("id");
 
   try {
-    return c.json({
-      message: "User Data Retrieved",
-      data: {
-        id: userId,
-      } as User,
-    });
+    await validateUserIdInput(userId);
+    const response = await getUserByIdQuery(userId);
+
+    if (response[0]) {
+      return apiResponse(c, response[0], USERS.GET, HTTP_STATUS.OK);
+    }
+    return apiResponse(c, null, USERS.NO_USER, HTTP_STATUS.NOT_FOUND);
   } catch (e) {
-    // #TODO error handling for possible errors
-    console.error(e);
-    return c.json({
-      message: `Error getting the User with Id=${userId}`,
-    });
+    const status = getErrorStatus(e);
+
+    return apiResponse(c, null, USERS.GET_ERROR, status, e);
   }
 }

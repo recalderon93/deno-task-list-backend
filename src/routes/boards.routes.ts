@@ -4,16 +4,16 @@ import {
   createBoardController,
   deleteBoardController,
   getBoardByIdController,
-  getBoardsByUserController,
   updateBoardTitleController,
 } from "controllers/boards.controllers.ts";
+import { getTasksByBoardIdController } from "controllers/tasks.controllers.ts";
 
 const brandRoutes = new Hono()
   .get("/:id", getBoardByIdController)
-  .get("/:userId", getBoardsByUserController)
   .post("/", createBoardController)
-  .patch("/:id", updateBoardTitleController)
-  .patch("/:id", changeBoardOwnershipController)
-  .delete("/:id", deleteBoardController);
+  .patch("/:id/name", updateBoardTitleController)
+  .patch("/:id/ownership", changeBoardOwnershipController)
+  .delete("/:id", deleteBoardController)
+  .get("/:id/tasks", getTasksByBoardIdController);
 
 export default brandRoutes;
